@@ -7,19 +7,33 @@ class Tree
     end
 
     def breadth_first_search(target, level = @tree)
-        queue = []
+        nodes = []
         Array(level).each do |node|
             @search_result = node if node.value == target
             Array(node.children).each do |child|
-                queue << child if child
+                nodes << child if child
             end
         end
-        breadth_first_search(target, queue) if queue != []
+        breadth_first_search(target, nodes) if nodes.empty?
         if level == @tree
             output = @search_result.dup
             @search_result = nil
             output
         end        
+    end
+
+    def dfs_rec(target, root = @tree)
+        @search_result = root if root.value == target
+        if root.children
+            Array(root.children).each do |node|
+                dfs_rec(target, node) if node
+            end
+        end
+        if root == @tree
+            output = @search_result.dup
+            @search_result = nil
+            output
+        end  
     end
 
     private
