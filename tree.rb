@@ -1,44 +1,32 @@
 class Tree
     require_relative "node"
 
-    @@SEARCH = Proc.new { |node|
-        return node if node.value == target
-    }
-    
-    @@COUNT = Proc.new { |node|
-        count += 1
-    }
-
     def initialize(data)
         @tree = build_tree(data)
         @search_result = nil
     end
 
     def breadth_first_search(target)
-        breadth_first_traverse(@@SEARCH) if @tree.value
-        return nil
+        search(target, :breadth_first_traverse)
     end
 
     def depth_first_search(target)
-        depth_first_traverse(@@SEARCH) if @tree.value
-        return nil
+        search(target, :depth_first_traverse)
     end
 
-    def dfs_rec(target, root = @tree)
-        @search_result = root if root.value == target
-        if root.children
-            Array(root.children).each do |node|
-                dfs_rec(target, node) if node
-            end
-        end
-        if root == @tree
-            output = @search_result.dup
-            @search_result = nil
-            output
-        end  
+    def dfs_rec(target)
+        search(target, :dft_rec)
     end
 
     private
+
+    def search(target, method)
+        proc = Proc.new { |node|
+            return node if node.value == target
+        }
+        self.send method, proc
+        return nil
+    end
 
     def build_tree(data, parent = nil)
         if data.length < 2
@@ -69,14 +57,23 @@ class Tree
     end
 
     def depth_first_traverse(proc)
-        stack = [@tree]
-        i = 0
-        until stack[i].children.empty?
-            stack << stack[i].children
-            stack.flatten
-            i += 1
+        nodes_to_visit = [@tree]
+        until nodes_to_visit.empty?
+            current_node = nodes_to_visit.pop
+            nodes_to_visit << current_node.children.reject { |child| child.nil?} if current_node.children
+            nodes_to_visit.flatten!
+            nodes_to_visit
+            proc.call(current_node)
+        end    
+    end
+
+    def dft_rec(proc, root = @tree)
+        proc.call(root)
+        if root.children
+            Array(root.children).reject { |child| child.nil?}.each do |child|
+                dft_rec(proc, child) if child
+            end
         end
-        
 
     end
 end
