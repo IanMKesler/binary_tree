@@ -1,25 +1,27 @@
 class Tree
     require_relative "node"
 
+    @@SEARCH = Proc.new { |node|
+        return node if node.value == target
+    }
+    
+    @@COUNT = Proc.new { |node|
+        count += 1
+    }
+
     def initialize(data)
-        @search_result = nil
         @tree = build_tree(data)
+        @search_result = nil
     end
 
-    def breadth_first_search(target, level = @tree)
-        nodes = []
-        Array(level).each do |node|
-            @search_result = node if node.value == target
-            Array(node.children).each do |child|
-                nodes << child if child
-            end
-        end
-        breadth_first_search(target, nodes) if nodes.empty?
-        if level == @tree
-            output = @search_result.dup
-            @search_result = nil
-            output
-        end        
+    def breadth_first_search(target)
+        breadth_first_traverse(@@SEARCH) if @tree.value
+        return nil
+    end
+
+    def depth_first_search(target)
+        depth_first_traverse(@@SEARCH) if @tree.value
+        return nil
     end
 
     def dfs_rec(target, root = @tree)
@@ -52,5 +54,29 @@ class Tree
             node.children = [build_tree(left, node), build_tree(right, node)]
             return node
         end
+    end
+
+    def breadth_first_traverse(proc, level = @tree)
+        nodes = Array(level).flatten
+        next_level = []
+        nodes.each do |node|
+            if node
+                proc.call(node)
+                next_level << node.children if node.children
+            end            
+        end
+        breadth_first_traverse(proc, next_level) unless next_level.empty?            
+    end
+
+    def depth_first_traverse(proc)
+        stack = [@tree]
+        i = 0
+        until stack[i].children.empty?
+            stack << stack[i].children
+            stack.flatten
+            i += 1
+        end
+        
+
     end
 end
